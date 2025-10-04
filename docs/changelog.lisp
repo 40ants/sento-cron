@@ -9,5 +9,7 @@
                               "ASDF"
                               "REPL"
                               "HTTP"))
-  (0.1.0 2023-02-05
+  (0.1.1 2025-10-05
+         "* Fixed cron actor initialization on evaluation of defschedule in case if cron was started using an external actors system.")
+  (0.1.0 2025-08-20
          "* Initial version."))
