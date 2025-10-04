@@ -5,7 +5,21 @@
                 #:ok
                 #:testing)
   (:import-from #:log4cl-extras/error
-                #:with-log-unhandled))
+                #:with-log-unhandled)
+  (:import-from #:sento-cron/schedule
+                #:defschedule)
+  (:import-from #:sento.actor-system
+                #:scheduler
+                #:make-actor-system)
+  (:import-from #:sento.actor-context
+                #:shutdown
+                #:actor-of)
+  (:import-from #:sento.actor
+                #:tell)
+  (:import-from #:sento.actor-cell
+                #:stop)
+  (:import-from #:sento.wheel-timer
+                #:schedule-recurring))
 (in-package #:sento-cron-tests/core)
 
 
@@ -37,12 +51,12 @@
                             ;; :other-args '(:queue-size 1)
                             ))))
     (log:warn "Posting messages to the actor")
-    (sento.actor:tell actor "first-time")
-    (sento.actor:tell actor "second-time")
-    (sento.actor-cell:stop actor)
+    (tell actor "first-time")
+    (tell actor "second-time")
+    (stop actor)
     (log:warn "Stopping the system")
-    (sento.actor-context:shutdown system
-                                  :wait wait)
+    (shutdown system
+              :wait wait)
     (log:warn "System was stopped")
     (values)))
 
@@ -55,13 +69,13 @@
     (let* ((system (make-actor-system '(:scheduler (:enabled :true)))))
       (unwind-protect
            (progn
-             (let* ((scheduler (sento.actor-system:scheduler system))
-                    (timer1 (sento.wheel-timer:schedule-recurring
+             (let* ((scheduler (scheduler system))
+                    (timer1 (schedule-recurring
                              scheduler
                              1 ;; start immediately
                              5 ;; then every 5 seconds
                              #'func1))
-                    (timer2 (sento.wheel-timer:schedule-recurring
+                    (timer2 (schedule-recurring
                              scheduler
                              1  ;; start immediately
                              10 ;; then every 5 seconds
@@ -69,8 +83,8 @@
                (log:info "Timers were created:" timer1 timer2)
 
                (sleep 60)))
-        (sento.actor-context:shutdown system
-                                      :wait t))))
+        (shutdown system
+                  :wait t))))
   (values))
 
 

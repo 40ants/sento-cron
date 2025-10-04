@@ -12,3 +12,11 @@
   :depends-on ("sento-cron/core"
                "sento-cron/schedule")
   :in-order-to ((test-op (test-op "sento-cron-tests"))))
+
+
+(asdf:register-system-packages "sento" '("SENTO.ACTOR-SYSTEM"
+                                         "SENTO.ACTOR-CONTEXT"
+                                         "SENTO.ACTOR-CELL"
+                                         "SENTO.ACTOR"
+                                         "SENTO.WHEEL-TIMER"
+                                         "SENTO.QUEUE"))

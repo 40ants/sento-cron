@@ -180,22 +180,36 @@
 
 
 (defmacro defschedule (var-name &body body)
-  (alexandria:with-gensyms (was-running)
+  (alexandria:with-gensyms (was-running external-system)
     `(eval-always
        (defvar ,var-name)
        
-       (let ((,was-running nil))
-         (when (and (boundp ',var-name)
-                    (scheduler-is-running ,var-name))
-           (stop-scheduler ,var-name)
-           (setf ,was-running
-                 t))
+       (let ((,was-running nil)
+             (,external-system nil))
+         (cond
+           ((and (boundp ',var-name)
+                 (scheduler-is-running ,var-name))
+            (setf ,external-system
+                  (when (external-system-p ,var-name)
+                    (schedule-system ,var-name)))
+            (stop-scheduler ,var-name)
+            
+            (log:warn "Remembering that cron was running")
+            (setf ,was-running
+                  t))
+           (t
+            (log:warn "Cron is not running and will not be restarted")))
          
          (setf ,var-name
                (make-schedule ',body))
-
-         (when ,was-running
-           (start-scheduler ,var-name))
+         
+         (cond
+           (,was-running
+            (log:warn "Cron was running before defschedule evaluation, restarting it")
+            (start-scheduler ,var-name
+                             :actor-system ,external-system))
+           (t
+            (log:warn "Cron was not running before defschedule evaluation, not restarting it")))
          
          (values ,var-name)))))
 
